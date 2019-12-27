@@ -21,14 +21,8 @@ $(document).ready(function(e) {
 				y: 0
 			},
 			VenueSize: {
-				min: {
-					x: 99999,
-					y: 99999
-				},
-				max: {
 					x: 0,
 					y: 0
-				}
 			},
 			WrapperSize: {
 				width: $('#venueElement').width(),
@@ -48,23 +42,24 @@ $(document).ready(function(e) {
 
 		});
 
+        let venueStart = [99999,99999];
 		json.data.venue.ss[0].ls.forEach(label => {
 			$('#venueItems').append(`<div data-id="${label.id}" style="left:${label.x}; top:${label.y};${label.s}" class="label"><span>${label.l}</span></div>`);
-			if (c.VenueSize.min.x > label.x) c.VenueSize.min.x = label.x;
-			if (c.VenueSize.min.y > label.y) c.VenueSize.min.y = label.y;
-			if (c.VenueSize.max.x < label.x) c.VenueSize.max.x = label.x;
-			if (c.VenueSize.max.y < label.y) c.VenueSize.max.y = label.y;
+			if (venueStart[0] > label.x) venueStart[0] = label.x;
+			if (venueStart[1] > label.y) venueStart[1] = label.y;
+			if (c.VenueSize.x < label.x) c.VenueSize.x = label.x;
+			if (c.VenueSize.y < label.y) c.VenueSize.y = label.y;
 		});
 
 		json.data.venue.ss[0].s.forEach(ticket => {
 			$('#venueItems').append(`<div data-id="${ticket.id}" style="left:${ticket.x}; top:${ticket.y};" class="ticket ` + (ticket.s != "0" ? 'ticket_00' : `ticket_${ticket.p}`) + `"><span>${ticket.l}</span></div>`)
-			if (c.VenueSize.min.x > ticket.x) c.VenueSize.min.x = ticket.x;
-			if (c.VenueSize.min.y > ticket.y) c.VenueSize.min.y = ticket.y;
-			if (c.VenueSize.max.x < ticket.x) c.VenueSize.max.x = ticket.x;
-			if (c.VenueSize.max.y < ticket.y) c.VenueSize.max.y = ticket.y;
+			if (venueStart[0] > ticket.x) venueStart[0] = ticket.x;
+			if (venueStart[1] > ticket.y) venueStart[1] = ticket.y;
+			if (c.VenueSize.x < ticket.x) c.VenueSize.x = ticket.x;
+			if (c.VenueSize.y < ticket.y) c.VenueSize.y = ticket.y;
 		});
-		c.VenueSize.max.x += c.VenueSize.min.x;
-		c.VenueSize.max.y += c.VenueSize.min.y;
+		c.VenueSize.x += venueStart[0];
+		c.VenueSize.y += venueStart[1];
 
         var clickTime = 0;
 		$('#venueItems div:not(.ticket_00)').on('touchstart', function(e) {
@@ -90,8 +85,8 @@ $(document).ready(function(e) {
 
 			if (size) {
 				c.Scale = size;
-				c.Translate.x = (c.WrapperSize.width / 2) - (c.VenueSize.max.x / 2);
-				c.Translate.y = (c.WrapperSize.height / 2) - (c.VenueSize.max.y / 2);
+				c.Translate.x = (c.WrapperSize.width / 2) - (c.VenueSize.x / 2);
+				c.Translate.y = (c.WrapperSize.height / 2) - (c.VenueSize.y / 2);
 			}
 			c.Scale = clamp(c.Scale, 0.3, 5);
 			if (typeof x !== 'undefined' && typeof y !== 'undefined' && !size) {
@@ -109,16 +104,16 @@ $(document).ready(function(e) {
 			$('#venue').css('transform', `translate(${c.Translate.x}px, ${c.Translate.y}px)`);
 		}
 
-		zoomVenue(-1, c.VenueSize.max.x, c.VenueSize.max.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
-		$('#venue').width(c.VenueSize.max.x);
-		$('#venue').height(c.VenueSize.max.y);
+		zoomVenue(-1, c.VenueSize.x, c.VenueSize.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
+		$('#venue').width(c.VenueSize.x);
+		$('#venue').height(c.VenueSize.y);
 		$(window).resize(function() {
 
 			c.WrapperSize = {
 				width: $('#venueElement').width(),
 				height: $('#venueElement').height()
 			};
-			zoomVenue(-1, c.VenueSize.max.x, c.VenueSize.max.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
+			zoomVenue(-1, c.VenueSize.x, c.VenueSize.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
 		});
 
 
