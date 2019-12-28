@@ -5,8 +5,15 @@ div#venueElement {
 	height: 80vh;
 	box-shadow: 0px 0px 5px 2px inset #3532321f;
 	will-change: transform;
+    background: white;
+    
+    margin-left: 130px;
+    margin-right: 100px;
 }
 
+.ticket.ticket_00.ticketState20 {
+    filter: contrast(0.3);
+    }
 div#venueZoom {
 	will-change: transform;
 	transition: transform 0.2s cubic-bezier(0.15, 0.32, 1, 0.87);
@@ -70,4 +77,33 @@ div#venueElement.zooming #venue {
 	cursor: pointer;
 	background: #00e0d6;
 	box-shadow: 0px 0px 3px 2px inset #8a8a8a;
+}
+div#loading {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 10vw;
+    color: #676767;
+}
+div#zooming {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 99999;
+}
+
+div#zooming a {
+    display: block;
+    width: 20px;
+    font-size: 20px;
+    text-decoration: none;
+    color: white;
+    background: #FF5722;
+    border: 1px solid black;
+    text-align: center;
+}
+div#venueConfig {
+    height: 0px;
 }

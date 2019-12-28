@@ -21,8 +21,8 @@ $(document).ready(function(e) {
 				y: 0
 			},
 			VenueSize: {
-					x: 0,
-					y: 0
+				x: 0,
+				y: 0
 			},
 			WrapperSize: {
 				width: $('#venueElement').width(),
@@ -42,61 +42,69 @@ $(document).ready(function(e) {
 
 		});
 
-        let venueStart = [99999,99999];
+		let venueStart = [99999, 99999];
+		let auxTextContainer = "";
 		json.data.venue.ss[0].ls.forEach(label => {
-			$('#venueItems').append(`<div data-id="${label.id}" style="left:${label.x}; top:${label.y};${label.s}" class="label"><span>${label.l}</span></div>`);
+			auxTextContainer += `<div data-id="${label.id}" style="left:${label.x}; top:${label.y};${label.s}" class="label"><span>${label.l}</span></div>`;
 			if (venueStart[0] > label.x) venueStart[0] = label.x;
 			if (venueStart[1] > label.y) venueStart[1] = label.y;
 			if (c.VenueSize.x < label.x) c.VenueSize.x = label.x;
 			if (c.VenueSize.y < label.y) c.VenueSize.y = label.y;
 		});
-
+		$('#loading').css('display', 'none');
+		$('#venueItems').append(auxTextContainer);
+		auxTextContainer = "";
 		json.data.venue.ss[0].s.forEach(ticket => {
-			$('#venueItems').append(`<div data-id="${ticket.id}" style="left:${ticket.x}; top:${ticket.y};" class="ticket ` + (ticket.s != "0" ? 'ticket_00' : `ticket_${ticket.p}`) + `"><span>${ticket.l}</span></div>`)
+			auxTextContainer += `<div data-id="${ticket.id}" style="left:${ticket.x}; top:${ticket.y};" class="ticket ` + (ticket.s != "0" ? 'ticket_00 ticketState'+ticket.s : `ticket_${ticket.p}`) + `"><span>${ticket.l}</span></div>`;
 			if (venueStart[0] > ticket.x) venueStart[0] = ticket.x;
 			if (venueStart[1] > ticket.y) venueStart[1] = ticket.y;
 			if (c.VenueSize.x < ticket.x) c.VenueSize.x = ticket.x;
 			if (c.VenueSize.y < ticket.y) c.VenueSize.y = ticket.y;
 		});
+		$('#venueItems').append(auxTextContainer);
 		c.VenueSize.x += venueStart[0];
 		c.VenueSize.y += venueStart[1];
 
-        var clickTime = 0;
+		var clickTime = 0;
 		$('#venueItems div:not(.ticket_00)').on('touchstart', function(e) {
-            if(e.originalEvent.touches.length === 1)
-            clickTime = Date.now();
-        });
+			if (e.originalEvent.touches.length === 1)
+				clickTime = Date.now();
+		});
 		$('#venueItems div:not(.ticket_00)').on('click touchend', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            if(e.type = 'touchend')
-            {
-                clickTime = Date.now() - clickTime;
-                if(clickTime < 350)
-                    $(this).toggleClass('selected');
+			//e.stopPropagation();
+			e.preventDefault();
+			if (e.type == 'touchend') {
+				clickTime = Date.now() - clickTime;
+				if (clickTime < 350)
+					$(this).toggleClass('selected');
 
-            }else 
-            $(this).toggleClass('selected');
-			
-        });
-        
-		let zoomVenue = (state, x, y, size) => {
-			c.Scale += (state > 0 ? 0.2 : -0.2);
+			} else
+				$(this).toggleClass('selected');
+
+		});
+
+		/**
+		 * 
+		 * Zooming
+		 * 
+		 */
+		let zoomVenue = (scale, x, y, size) => {
+			c.Scale += scale; //(scale > 0 ? 0.2 : -0.2);
 
 			if (size) {
 				c.Scale = size;
 				c.Translate.x = (c.WrapperSize.width / 2) - (c.VenueSize.x / 2);
 				c.Translate.y = (c.WrapperSize.height / 2) - (c.VenueSize.y / 2);
 			}
-			c.Scale = clamp(c.Scale, 0.3, 5);
+			c.Scale = clamp(c.Scale, 0.4, 5);
 			if (typeof x !== 'undefined' && typeof y !== 'undefined' && !size) {
-				let center = [$('#venueElement').width() / 2, $('#venueElement').height() / 2];
-				if (state > 0) {
-					c.Translate.x += (center[0] - x) / c.Scale / 5;
-					c.Translate.y += (center[1] - y) / c.Scale / 5;
+				let center = [$('#venueZoom').width() / 2, $('#venueZoom').height() / 2];
+				if (scale > 0) {
+					c.Translate.x += ((center[0] - x) / (c.Scale) / 5);
+					c.Translate.y +=  ((center[1] - y) / (c.Scale)/ 5);
 				} else {
-					c.Translate.x -= (center[0] - x) / c.Scale / 5;
-					c.Translate.y -= (center[1] - y) / c.Scale / 5;
+					c.Translate.x -= -((center[0] - x) / 2 / (c.Scale) / 5);
+					c.Translate.y -= -((center[1] - y) / 2 / (c.Scale) / 5);
 
 				}
 			}
@@ -115,13 +123,26 @@ $(document).ready(function(e) {
 			};
 			zoomVenue(-1, c.VenueSize.x, c.VenueSize.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
 		});
+		$('#zoomIn').on('click touchend', function() {
+			zoomVenue(0.5)
+		});
+		$('#zoomOut').on('click touchend', function() {
+			zoomVenue(-0.5)
+		});
+		$('#zoomReset').on('click touchend', function() {
+            zoomVenue(-1, c.VenueSize.x, c.VenueSize.y, (c.WrapperSize.width < c.WrapperSize.height ? c.WrapperSize.width / 1000 * 1.2 : c.WrapperSize.height / 1000 * 1.2));
+		});
 
-
+		/**
+		 * 
+		 * Movement
+		 * 
+		 */
 		$('#venueElement').bind('mousewheel DOMMouseScroll', function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 			$('#venueElement').addClass('zooming');
-			zoomVenue(e.originalEvent.wheelDelta / 120, e.originalEvent.clientX, e.originalEvent.clientY);
+			zoomVenue((e.originalEvent.wheelDelta / 120) * 0.2, e.originalEvent.clientX, e.originalEvent.clientY);
 		});
 
 		var tapedTwice = false;
@@ -136,9 +157,10 @@ $(document).ready(function(e) {
 
 			/* DOUBLE TAP*/
 			if (e.originalEvent.touches)
-				if (e.originalEvent.touches.length > 1) 
+				if (e.originalEvent.touches.length > 1) {
+					$('#venueElement').addClass('zooming');
 					return 1;
-				
+				}
 
 			if (!tapedTwice) {
 				tapedTwice = true;
@@ -160,7 +182,8 @@ $(document).ready(function(e) {
 
 		}).bind('mouseup touchend mouseleave', function(e) {
 			c.Dragging = false;
-            c.PinchDist = 0;
+			c.PinchDist = 0;
+			$('#venueElement').removeClass('zooming');
 		}).bind('mousemove touchmove', function(e) {
 
 			if (c.Dragging) {
@@ -173,10 +196,10 @@ $(document).ready(function(e) {
 							e.originalEvent.touches[0].pageY - e.originalEvent.touches[1].pageY);
 						if (c.PinchDist) {
 							if (c.PinchDist - newPinch > 40) {
-								zoomVenue(-1);
+								zoomVenue(-0.2);
 								c.PinchDist = newPinch;
 							} else if (c.PinchDist - newPinch < -40) {
-								zoomVenue(1);
+								zoomVenue(0.4);
 								c.PinchDist = newPinch;
 							}
 						} else
@@ -190,7 +213,6 @@ $(document).ready(function(e) {
 				let newY = c.Translate.y + ((mouse.clientY - c.Mouse.y) / c.Scale * 1.2);
 
 				$('#venue').css('transform', `translate(${newX}px, ${newY}px)`);
-
 				c.Mouse.x = mouse.clientX;
 				c.Mouse.y = mouse.clientY;
 
